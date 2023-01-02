@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 
 const Tv = () => (
   <View style={{ fles: 1, justifyContent: "center", alignItems: "center" }}>
-    <Text>Tv</Text>
+    <Text>tv</Text>
   </View>
 );
 
