@@ -3,14 +3,16 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
-import Tabs from "./navigation/Tabs";
+import { ThemeProvider } from "styled-components";
 import Root from "./navigation/Root";
+import { useColorScheme } from "react-native";
+import { darkTheme, lightTheme } from "./styled";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-
+  const isDark = useColorScheme() === "dark";
   useEffect(() => {
     async function prepare() {
       try {
@@ -35,8 +37,10 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer onReady={onLayoutRootView}>
-      <Root />
-    </NavigationContainer>
+    <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+      <NavigationContainer onReady={onLayoutRootView}>
+        <Root />
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
