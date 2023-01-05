@@ -2,15 +2,9 @@ import React from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import styled from "styled-components/native";
 import { makeImgPath } from "../utils";
-
+import Poster from "./Poster";
 
 const BgImg = styled.Image``;
-
-const Poster = styled.Image`
-  width: 100px;
-  height: 160px;
-  border-radius: 5px;
-`;
 
 const Title = styled.Text<{ isDark: boolean }>`
   font-size: 16px;
@@ -67,7 +61,7 @@ const Slide: React.FC<SlideProps> = ({
         resizeMode="cover"
       />
       <Wrapper>
-        <Poster source={{ uri: makeImgPath(posterPath) }} />
+        <Poster path={posterPath} />
         <Column>
           <Title isDark={isDark}>{originalTitle}</Title>
           {voteAverage > 0 ? (

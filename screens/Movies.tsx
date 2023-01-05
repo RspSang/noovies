@@ -1,8 +1,9 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions } from "react-native";
+import { ActivityIndicator, Dimensions, useColorScheme } from "react-native";
 import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
+import Poster from "../components/Poster";
 import Slide from "../components/Slide";
 
 const API_KEY = "63499326424116264172142ac5886cd9";
@@ -15,23 +16,79 @@ const Loader = styled.View`
 
 const Container = styled.ScrollView``;
 
+const ListTitle = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 30px;
+`;
+
+const TrendingScroll = styled.ScrollView`
+  margin-top: 20px;
+`;
+
+const Movie = styled.View`
+  margin-right: 20px;
+  align-items: center;
+`;
+
+const Title = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  font-weight: 600;
+  margin-top: 7px;
+  margin-bottom: 5px;
+`;
+
+const Votes = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  font-size: 10px;
+`;
+
+const ListContainer = styled.View`
+  margin-bottom: 40px;
+`;
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
+  const isDark = useColorScheme() === "dark";
   const [loading, setLoading] = useState(true);
   const [nowPlaying, setNowPlaying] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const getTrending = async () => {
+    const { results } = await (
+      await fetch(
+        `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`
+      )
+    ).json();
+    setTrending(results);
+  };
+  const getUpcoming = async () => {
+    const { results } = await (
+      await fetch(
+        `https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=ja-JP&page=1&region=JP`
+      )
+    ).json();
+    setUpcoming(results);
+  };
   const getNowPlaying = async () => {
     const { results } = await (
       await fetch(
-        `https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1&region=JP`
+        `https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=ja-JP&page=1&region=JP`
       )
     ).json();
     setNowPlaying(results);
+  };
+  const getDate = async () => {
+    await Promise.all([getTrending(), getUpcoming(), getNowPlaying()]);
     setLoading(false);
   };
-
   useEffect(() => {
-    getNowPlaying();
+    getDate();
   }, []);
 
   return loading ? (
@@ -47,7 +104,11 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
         autoplayTimeout={3.5}
         showsPagination={false}
         loop
-        containerStyle={{ width: "100%", height: SCREEN_HEIGHT / 4 }}
+        containerStyle={{
+          width: "100%",
+          height: SCREEN_HEIGHT / 4,
+          marginBottom: 30,
+        }}
       >
         {nowPlaying.map((movie) => (
           <Slide
@@ -60,6 +121,29 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           />
         ))}
       </Swiper>
+      <ListContainer>
+        <ListTitle isDark={isDark}>Trending Movies</ListTitle>
+        <TrendingScroll
+          contentContainerStyle={{ paddingLeft: 30 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {trending.map((movie) => (
+            <Movie key={movie.id}>
+              <Poster path={movie.poster_path} />
+              <Title isDark={isDark}>
+                {movie.original_title.slice(0, 13)}
+                {movie.original_title.length > 13 ? "..." : null}
+              </Title>
+              <Votes isDark={isDark}>
+                {movie.vote_average > 0
+                  ? `⭐️${movie.vote_average}/10`
+                  : `Coming soon`}
+              </Votes>
+            </Movie>
+          ))}
+        </TrendingScroll>
+      </ListContainer>
     </Container>
   );
 };
