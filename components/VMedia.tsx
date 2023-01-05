@@ -1,0 +1,44 @@
+import React from "react";
+import styled from "styled-components/native";
+import Poster from "./Poster";
+import Votes from "./Votes";
+
+const Movie = styled.View`
+  margin-right: 20px;
+  align-items: center;
+`;
+
+const Title = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  font-weight: 600;
+  margin-top: 7px;
+  margin-bottom: 5px;
+`;
+
+interface VMediaProps {
+  posterPath: string;
+  originalTitle: string;
+  voteAverage: number;
+  isDark: boolean;
+}
+
+const VMedia: React.FC<VMediaProps> = ({
+  posterPath,
+  originalTitle,
+  voteAverage,
+  isDark,
+}) => {
+  return (
+    <Movie>
+      <Poster path={posterPath} />
+      <Title isDark={isDark}>
+        {originalTitle.slice(0, 13)}
+        {originalTitle.length > 13 ? "..." : null}
+      </Title>
+      <Votes isDark={isDark} votes={voteAverage} />
+    </Movie>
+  );
+};
+
+export default VMedia;
