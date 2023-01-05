@@ -51,6 +51,34 @@ const ListContainer = styled.View`
   margin-bottom: 40px;
 `;
 
+const HMovie = styled.View`
+  padding: 0px 30px;
+  flex-direction: row;
+  margin-bottom: 30px;
+`;
+
+const HColumn = styled.View`
+  margin-left: 15px;
+  width: 80%;
+`;
+
+const Overview = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  width: 80%;
+`;
+
+const Release = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
+  font-size: 12px;
+  margin-bottom: 10px;
+`;
+
+const ComingSoonTitle = styled(ListTitle)`
+  margin-bottom: 30px;
+`;
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
@@ -115,7 +143,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
             key={movie.id}
             backdropPath={movie.backdrop_path}
             posterPath={movie.poster_path}
-            originalTitle={movie.original_title}
+            originalTitle={movie.title}
             voteAverage={movie.vote_average}
             overview={movie.overview}
           />
@@ -132,18 +160,40 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
             <Movie key={movie.id}>
               <Poster path={movie.poster_path} />
               <Title isDark={isDark}>
-                {movie.original_title.slice(0, 13)}
-                {movie.original_title.length > 13 ? "..." : null}
+                {movie.title.slice(0, 13)}
+                {movie.title.length > 13 ? "..." : null}
               </Title>
               <Votes isDark={isDark}>
                 {movie.vote_average > 0
-                  ? `⭐️${movie.vote_average}/10`
+                  ? `⭐️${movie.vote_average.toFixed(1)}/10`
                   : `Coming soon`}
               </Votes>
             </Movie>
           ))}
         </TrendingScroll>
       </ListContainer>
+      <ComingSoonTitle isDark={isDark}>Coming Soon</ComingSoonTitle>
+      {upcoming.map((movie) => (
+        <HMovie key={movie.id}>
+          <Poster path={movie.poster_path} />
+          <HColumn>
+            <Title isDark={isDark}>{movie.title}</Title>
+            <Release isDark={isDark}>
+              公開日:
+              {new Date(movie.release_date).toLocaleDateString("ja", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Release>
+            <Overview isDark={isDark}>
+              {movie.overview! + "" && movie.overview.length > 80
+                ? `${movie.overview.slice(0, 90)}...`
+                : movie.overview}
+            </Overview>
+          </HColumn>
+        </HMovie>
+      ))}
     </Container>
   );
 };
