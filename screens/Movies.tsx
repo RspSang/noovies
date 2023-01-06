@@ -12,7 +12,7 @@ import styled from "styled-components/native";
 import HMedia from "../components/HMedia";
 import Slide from "../components/Slide";
 import VMedia from "../components/VMedia";
-import { moviesApi } from "../api";
+import { Movie, MovieResponse, moviesApi } from "../api";
 
 const Loader = styled.View`
   flex: 1;
@@ -26,10 +26,6 @@ const ListTitle = styled.Text<{ isDark: boolean }>`
   font-size: 16px;
   font-weight: 600;
   margin-left: 30px;
-`;
-
-const TrendingScroll = styled.FlatList`
-  margin-top: 20px;
 `;
 
 const ListContainer = styled.View`
@@ -57,32 +53,32 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     isLoading: nowPlayingLoading,
     data: nowPlayingData,
     isRefetching: isRefetchingNowPlaying,
-  } = useQuery(["movies", "nowPlaying"], moviesApi.nowPlaying);
+  } = useQuery<MovieResponse>(["movies", "nowPlaying"], moviesApi.nowPlaying);
   const {
     isLoading: upcomingLoading,
     data: upcomingData,
     isRefetching: isRefetchingUpcoming,
-  } = useQuery(["movies", "upcoming"], moviesApi.upcoming);
+  } = useQuery<MovieResponse>(["movies", "upcoming"], moviesApi.upcoming);
   const {
     isLoading: trendingLoading,
     data: trendingData,
     isRefetching: isRefetchingTrending,
-  } = useQuery(["movies", "trending"], moviesApi.trending);
+  } = useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
   const refreshing =
     isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
-  const movieKeyExtractor = (item) => item.id + "";
-  const renderVMedia = ({ item }) => (
+  const movieKeyExtractor = (item: Movie) => item.id + "";
+  const renderVMedia = ({ item }: { item: Movie }) => (
     <VMedia
-      posterPath={item.poster_path}
+      posterPath={item.poster_path || ""}
       originalTitle={item.original_title}
       voteAverage={item.vote_average}
       isDark={isDark}
     />
   );
-  const renderHMedia = ({ item }) => (
+  const renderHMedia = ({ item }: { item: Movie }) => (
     <HMedia
-      posterPath={item.poster_path}
+      posterPath={item.poster_path || ""}
       originalTitle={item.title}
       overview={item.overview}
       releaseDate={item.release_date}
@@ -96,7 +92,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     <Loader>
       <ActivityIndicator />
     </Loader>
-  ) : (
+  ) : upcomingData ? (
     <FlatList
       onRefresh={onRefresh}
       refreshing={refreshing}
@@ -115,11 +111,11 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               marginBottom: 30,
             }}
           >
-            {nowPlayingData.results.map((movie) => (
+            {nowPlayingData?.results.map((movie) => (
               <Slide
                 key={movie.id}
-                backdropPath={movie.backdrop_path}
-                posterPath={movie.poster_path}
+                backdropPath={movie.backdrop_path || ""}
+                posterPath={movie.poster_path || ""}
                 originalTitle={movie.title}
                 voteAverage={movie.vote_average}
                 overview={movie.overview}
@@ -129,15 +125,18 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           </Swiper>
           <ListContainer>
             <ListTitle isDark={isDark}>Trending Movies</ListTitle>
-            <TrendingScroll
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 30 }}
-              ItemSeparatorComponent={VSeparator}
-              keyExtractor={movieKeyExtractor}
-              data={trendingData.results}
-              renderItem={renderVMedia}
-            />
+            {trendingData ? (
+              <FlatList
+                style={{ marginTop: 20 }}
+                horizontal
+                data={trendingData.results}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 30 }}
+                ItemSeparatorComponent={VSeparator}
+                keyExtractor={movieKeyExtractor}
+                renderItem={renderVMedia}
+              />
+            ) : null}
           </ListContainer>
           <ComingSoonTitle isDark={isDark}>公開予定</ComingSoonTitle>
         </>
@@ -147,7 +146,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       data={upcomingData.results}
       renderItem={renderHMedia}
     />
-  );
+  ) : null;
 };
 
 export default Movies;
