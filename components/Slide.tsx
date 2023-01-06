@@ -10,7 +10,8 @@ const BgImg = styled.Image``;
 const Title = styled.Text<{ isDark: boolean }>`
   font-size: 16px;
   font-weight: 600;
-  color: ${(props) => (props.isDark ? "rgba(255,255,255)" : "rgba(0,0,0)")};
+  color: ${(props) =>
+    props.isDark ? "rgba(255,255,255, 0.8)" : "rgba(0,0,0, 0.8)"};
   margin-bottom: 10px;
 `;
 

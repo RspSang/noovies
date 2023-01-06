@@ -6,7 +6,6 @@ import Votes from "./Votes";
 const HMovie = styled.View`
   padding: 0px 30px;
   flex-direction: row;
-  margin-bottom: 30px;
 `;
 
 const HColumn = styled.View`
@@ -27,8 +26,9 @@ const Release = styled.Text<{ isDark: boolean }>`
   margin: 5px 0px 10px;
 `;
 
-const Title = styled.Text`
-  color: white;
+const Title = styled.Text<{ isDark: boolean }>`
+  color: ${(props) =>
+    props.isDark ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)"};
   font-weight: 600;
   margin-top: 7px;
 `;
@@ -54,21 +54,22 @@ const HMedia: React.FC<HMediaProps> = ({
     <HMovie>
       <Poster path={posterPath} />
       <HColumn>
-        <Title>
+        <Title isDark={isDark}>
           {originalTitle.length > 30
             ? `${originalTitle.slice(0, 30)}...`
             : originalTitle}
         </Title>
         {releaseDate ? (
           <Release isDark={isDark}>
-            公開日：{new Date(releaseDate).toLocaleDateString("ja", {
+            公開日：
+            {new Date(releaseDate).toLocaleDateString("ja", {
               year: "numeric",
               month: "long",
               day: "numeric",
             })}
           </Release>
         ) : null}
-        {voteAverage ? <Votes votes={voteAverage} /> : null}
+        {voteAverage ? <Votes isDark={isDark} votes={voteAverage} /> : null}
         <Overview isDark={isDark}>
           {overview !== "" && overview.length > 80
             ? `${overview.slice(0, 80)}...`
