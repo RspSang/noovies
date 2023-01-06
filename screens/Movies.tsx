@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useQuery, useQueryClient } from "react-query";
 import {
   ActivityIndicator,
   Dimensions,
@@ -11,8 +12,7 @@ import styled from "styled-components/native";
 import HMedia from "../components/HMedia";
 import Slide from "../components/Slide";
 import VMedia from "../components/VMedia";
-
-const API_KEY = "63499326424116264172142ac5886cd9";
+import { moviesApi } from "../api";
 
 const Loader = styled.View`
   flex: 1;
@@ -50,69 +50,48 @@ const HSeparator = styled.View`
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const renderVMedia = ({ item }) => (
-  <VMedia
-    posterPath={item.poster_path}
-    originalTitle={item.original_title}
-    voteAverage={item.vote_average}
-  />
-);
-
-const renderHMedia = ({ item }) => (
-  <HMedia
-    posterPath={item.poster_path}
-    originalTitle={item.title}
-    overview={item.overview}
-    releaseDate={item.release_date}
-  />
-);
-
-const movieKeyExtractor = (item) => item.id + "";
-
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
+  const queryClient = useQueryClient();
   const isDark = useColorScheme() === "dark";
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [nowPlaying, setNowPlaying] = useState([]);
-  const [upcoming, setUpcoming] = useState([]);
-  const [trending, setTrending] = useState([]);
-  const getTrending = async () => {
-    const { results } = await (
-      await fetch(
-        `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`
-      )
-    ).json();
-    setTrending(results);
-  };
-  const getUpcoming = async () => {
-    const { results } = await (
-      await fetch(
-        `https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=ja-JP&page=1&region=JP`
-      )
-    ).json();
-    setUpcoming(results);
-  };
-  const getNowPlaying = async () => {
-    const { results } = await (
-      await fetch(
-        `https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=ja-JP&page=1&region=JP`
-      )
-    ).json();
-    setNowPlaying(results);
-  };
-  const getData = async () => {
-    await Promise.all([getTrending(), getUpcoming(), getNowPlaying()]);
-    setLoading(false);
-  };
+  const {
+    isLoading: nowPlayingLoading,
+    data: nowPlayingData,
+    isRefetching: isRefetchingNowPlaying,
+  } = useQuery(["movies", "nowPlaying"], moviesApi.nowPlaying);
+  const {
+    isLoading: upcomingLoading,
+    data: upcomingData,
+    isRefetching: isRefetchingUpcoming,
+  } = useQuery(["movies", "upcoming"], moviesApi.upcoming);
+  const {
+    isLoading: trendingLoading,
+    data: trendingData,
+    isRefetching: isRefetchingTrending,
+  } = useQuery(["movies", "trending"], moviesApi.trending);
+  const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
+  const refreshing =
+    isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
+  const movieKeyExtractor = (item) => item.id + "";
+  const renderVMedia = ({ item }) => (
+    <VMedia
+      posterPath={item.poster_path}
+      originalTitle={item.original_title}
+      voteAverage={item.vote_average}
+      isDark={isDark}
+    />
+  );
+  const renderHMedia = ({ item }) => (
+    <HMedia
+      posterPath={item.poster_path}
+      originalTitle={item.title}
+      overview={item.overview}
+      releaseDate={item.release_date}
+      isDark={isDark}
+    />
+  );
   const onRefresh = async () => {
-    setRefreshing(true);
-    await getData();
-    setRefreshing(false);
+    queryClient.refetchQueries(["movies"]);
   };
-  useEffect(() => {
-    getData();
-  }, []);
-
   return loading ? (
     <Loader>
       <ActivityIndicator />
@@ -136,7 +115,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               marginBottom: 30,
             }}
           >
-            {nowPlaying.map((movie) => (
+            {nowPlayingData.results.map((movie) => (
               <Slide
                 key={movie.id}
                 backdropPath={movie.backdrop_path}
@@ -156,7 +135,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               contentContainerStyle={{ paddingHorizontal: 30 }}
               ItemSeparatorComponent={VSeparator}
               keyExtractor={movieKeyExtractor}
-              data={trending}
+              data={trendingData.results}
               renderItem={renderVMedia}
             />
           </ListContainer>
@@ -165,7 +144,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       }
       ItemSeparatorComponent={HSeparator}
       keyExtractor={movieKeyExtractor}
-      data={upcoming}
+      data={upcomingData.results}
       renderItem={renderHMedia}
     />
   );

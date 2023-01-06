@@ -7,6 +7,9 @@ import { ThemeProvider } from "styled-components";
 import Root from "./navigation/Root";
 import { useColorScheme } from "react-native";
 import { darkTheme, lightTheme } from "./styled";
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,10 +40,12 @@ export default function App() {
     return null;
   }
   return (
-    <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
-      <NavigationContainer onReady={onLayoutRootView}>
-        <Root />
-      </NavigationContainer>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+        <NavigationContainer onReady={onLayoutRootView}>
+          <Root />
+        </NavigationContainer>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
