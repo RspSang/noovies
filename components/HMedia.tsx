@@ -1,4 +1,5 @@
 import React from "react";
+import { useColorScheme } from "react-native";
 import styled from "styled-components/native";
 import Poster from "./Poster";
 import Votes from "./Votes";
@@ -39,7 +40,6 @@ interface HMediaProps {
   overview: string;
   releaseDate?: string;
   voteAverage?: number;
-  isDark: boolean;
 }
 
 const HMedia: React.FC<HMediaProps> = ({
@@ -48,8 +48,8 @@ const HMedia: React.FC<HMediaProps> = ({
   overview,
   releaseDate,
   voteAverage,
-  isDark,
 }) => {
+  const isDark = useColorScheme() === "dark";
   return (
     <HMovie>
       <Poster path={posterPath} />

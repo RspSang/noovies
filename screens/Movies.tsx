@@ -5,7 +5,6 @@ import {
   Dimensions,
   FlatList,
   useColorScheme,
-  View,
 } from "react-native";
 import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
@@ -41,7 +40,34 @@ const ComingSoonTitle = styled(ListTitle)`
   margin-bottom: 20px;
 `;
 
+const VSeparator = styled.View`
+  width: 30px;
+`;
+
+const HSeparator = styled.View`
+  height: 30px;
+`;
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const renderVMedia = ({ item }) => (
+  <VMedia
+    posterPath={item.poster_path}
+    originalTitle={item.original_title}
+    voteAverage={item.vote_average}
+  />
+);
+
+const renderHMedia = ({ item }) => (
+  <HMedia
+    posterPath={item.poster_path}
+    originalTitle={item.title}
+    overview={item.overview}
+    releaseDate={item.release_date}
+  />
+);
+
+const movieKeyExtractor = (item) => item.id + "";
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const isDark = useColorScheme() === "dark";
@@ -128,34 +154,19 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 30 }}
-              ItemSeparatorComponent={() => <View style={{ width: 30 }} />}
-              keyExtractor={(item) => item.id + ""}
+              ItemSeparatorComponent={VSeparator}
+              keyExtractor={movieKeyExtractor}
               data={trending}
-              renderItem={({ item }) => (
-                <VMedia
-                  posterPath={item.poster_path}
-                  originalTitle={item.original_title}
-                  voteAverage={item.vote_average}
-                  isDark={isDark}
-                />
-              )}
+              renderItem={renderVMedia}
             />
           </ListContainer>
           <ComingSoonTitle isDark={isDark}>公開予定</ComingSoonTitle>
         </>
       }
-      ItemSeparatorComponent={() => <View style={{ height: 30 }} />}
-      keyExtractor={(item) => item.id + ""}
+      ItemSeparatorComponent={HSeparator}
+      keyExtractor={movieKeyExtractor}
       data={upcoming}
-      renderItem={({ item }) => (
-        <HMedia
-          posterPath={item.poster_path}
-          originalTitle={item.original_title}
-          overview={item.overview}
-          releaseDate={item.release_date}
-          isDark={isDark}
-        />
-      )}
+      renderItem={renderHMedia}
     />
   );
 };
