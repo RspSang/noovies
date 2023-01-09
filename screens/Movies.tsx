@@ -1,24 +1,15 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  useColorScheme,
-} from "react-native";
+import { Dimensions, FlatList, useColorScheme } from "react-native";
 import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
 import HMedia from "../components/HMedia";
 import Slide from "../components/Slide";
 import VMedia from "../components/VMedia";
 import { Movie, MovieResponse, moviesApi } from "../api";
-
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
+import Loader from "../components/Loader";
+import HList from "../components/HList";
 
 const ListTitle = styled.Text<{ isDark: boolean }>`
   color: ${(props) =>
@@ -28,16 +19,8 @@ const ListTitle = styled.Text<{ isDark: boolean }>`
   margin-left: 30px;
 `;
 
-const ListContainer = styled.View`
-  margin-bottom: 40px;
-`;
-
 const ComingSoonTitle = styled(ListTitle)`
   margin-bottom: 20px;
-`;
-
-const VSeparator = styled.View`
-  width: 30px;
 `;
 
 const HSeparator = styled.View`
@@ -49,24 +32,14 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const queryClient = useQueryClient();
   const isDark = useColorScheme() === "dark";
-  const {
-    isLoading: nowPlayingLoading,
-    data: nowPlayingData,
-    isRefetching: isRefetchingNowPlaying,
-  } = useQuery<MovieResponse>(["movies", "nowPlaying"], moviesApi.nowPlaying);
-  const {
-    isLoading: upcomingLoading,
-    data: upcomingData,
-    isRefetching: isRefetchingUpcoming,
-  } = useQuery<MovieResponse>(["movies", "upcoming"], moviesApi.upcoming);
-  const {
-    isLoading: trendingLoading,
-    data: trendingData,
-    isRefetching: isRefetchingTrending,
-  } = useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
+  const [refreshing, setRefreshing] = useState(false);
+  const { isLoading: nowPlayingLoading, data: nowPlayingData } =
+    useQuery<MovieResponse>(["movies", "nowPlaying"], moviesApi.nowPlaying);
+  const { isLoading: upcomingLoading, data: upcomingData } =
+    useQuery<MovieResponse>(["movies", "upcoming"], moviesApi.upcoming);
+  const { isLoading: trendingLoading, data: trendingData } =
+    useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
-  const refreshing =
-    isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
   const movieKeyExtractor = (item: Movie) => item.id + "";
   const renderVMedia = ({ item }: { item: Movie }) => (
     <VMedia
@@ -86,12 +59,12 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     />
   );
   const onRefresh = async () => {
-    queryClient.refetchQueries(["movies"]);
+    setRefreshing(true);
+    await queryClient.refetchQueries(["movies"]);
+    setRefreshing(false);
   };
   return loading ? (
-    <Loader>
-      <ActivityIndicator />
-    </Loader>
+    <Loader />
   ) : upcomingData ? (
     <FlatList
       onRefresh={onRefresh}
@@ -123,21 +96,13 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
               />
             ))}
           </Swiper>
-          <ListContainer>
-            <ListTitle isDark={isDark}>Trending Movies</ListTitle>
-            {trendingData ? (
-              <FlatList
-                style={{ marginTop: 20 }}
-                horizontal
-                data={trendingData.results}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 30 }}
-                ItemSeparatorComponent={VSeparator}
-                keyExtractor={movieKeyExtractor}
-                renderItem={renderVMedia}
-              />
-            ) : null}
-          </ListContainer>
+          {trendingData ? (
+            <HList
+              isDark={isDark}
+              title="Treanding Movies"
+              data={trendingData.results}
+            />
+          ) : null}
           <ComingSoonTitle isDark={isDark}>公開予定</ComingSoonTitle>
         </>
       }
