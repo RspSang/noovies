@@ -1,6 +1,8 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableWithoutFeedback, View } from "react-native";
 import styled from "styled-components/native";
+import { Movie } from "../api";
 import { makeImgPath } from "../utils";
 import Poster from "./Poster";
 import Votes from "./Votes";
@@ -41,6 +43,7 @@ interface SlideProps {
   voteAverage: number;
   overview: string;
   isDark: boolean;
+  fullData: Movie;
 }
 
 const Slide: React.FC<SlideProps> = ({
@@ -50,24 +53,35 @@ const Slide: React.FC<SlideProps> = ({
   voteAverage,
   overview,
   isDark,
+  fullData,
 }) => {
+  const navigation = useNavigation();
+  const goToDetail = () => {
+    //@ts-ignore
+    navigation.navigate("Stack", {
+      screen: "Detail",
+      params: { ...fullData },
+    });
+  };
   return (
-    <View style={{ flex: 1 }}>
-      <BgImg
-        style={StyleSheet.absoluteFill}
-        source={{ uri: makeImgPath(backdropPath) }}
-        blurRadius={10}
-        resizeMode="cover"
-      />
-      <Wrapper>
-        <Poster path={posterPath} />
-        <Column>
-          <Title isDark={isDark}>{originalTitle}</Title>
-          <Votes isDark={isDark} votes={voteAverage} />
-          <Overview isDark={isDark}>{overview.slice(0, 80)}...</Overview>
-        </Column>
-      </Wrapper>
-    </View>
+    <TouchableWithoutFeedback onPress={goToDetail}>
+      <View style={{ flex: 1 }}>
+        <BgImg
+          style={StyleSheet.absoluteFill}
+          source={{ uri: makeImgPath(backdropPath) }}
+          blurRadius={10}
+          resizeMode="cover"
+        />
+        <Wrapper>
+          <Poster path={posterPath} />
+          <Column>
+            <Title isDark={isDark}>{originalTitle}</Title>
+            <Votes isDark={isDark} votes={voteAverage} />
+            <Overview isDark={isDark}>{overview.slice(0, 80)}...</Overview>
+          </Column>
+        </Wrapper>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -6,7 +6,6 @@ import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
 import HMedia from "../components/HMedia";
 import Slide from "../components/Slide";
-import VMedia from "../components/VMedia";
 import { Movie, MovieResponse, moviesApi } from "../api";
 import Loader from "../components/Loader";
 import HList from "../components/HList";
@@ -41,21 +40,14 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
   const movieKeyExtractor = (item: Movie) => item.id + "";
-  const renderVMedia = ({ item }: { item: Movie }) => (
-    <VMedia
-      posterPath={item.poster_path || ""}
-      originalTitle={item.original_title}
-      voteAverage={item.vote_average}
-      isDark={isDark}
-    />
-  );
   const renderHMedia = ({ item }: { item: Movie }) => (
     <HMedia
       posterPath={item.poster_path || ""}
-      originalTitle={item.title}
+      originalTitle={item.original_title}
       overview={item.overview}
       releaseDate={item.release_date}
       isDark={isDark}
+      fullData={item}
     />
   );
   const onRefresh = async () => {
@@ -89,10 +81,11 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
                 key={movie.id}
                 backdropPath={movie.backdrop_path || ""}
                 posterPath={movie.poster_path || ""}
-                originalTitle={movie.title}
+                originalTitle={movie.original_title}
                 voteAverage={movie.vote_average}
                 overview={movie.overview}
                 isDark={isDark}
+                fullData={movie}
               />
             ))}
           </Swiper>

@@ -1,5 +1,8 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
+import { TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
+import { Movie } from "../api";
 import Poster from "./Poster";
 import Votes from "./Votes";
 
@@ -40,6 +43,7 @@ interface HMediaProps {
   releaseDate?: string;
   voteAverage?: number;
   isDark: boolean;
+  fullData:Movie
 }
 
 const HMedia: React.FC<HMediaProps> = ({
@@ -49,34 +53,45 @@ const HMedia: React.FC<HMediaProps> = ({
   releaseDate,
   voteAverage,
   isDark,
+  fullData,
 }) => {
+  const navigation = useNavigation();
+  const goToDetail = () => {
+    //@ts-ignore
+    navigation.navigate("Stack", {
+      screen: "Detail",
+      params: { ...fullData },
+    });
+  };
   return (
-    <HMovie>
-      <Poster path={posterPath} />
-      <HColumn>
-        <Title isDark={isDark}>
-          {originalTitle.length > 30
-            ? `${originalTitle.slice(0, 30)}...`
-            : originalTitle}
-        </Title>
-        {releaseDate ? (
-          <Release isDark={isDark}>
-            公開日：
-            {new Date(releaseDate).toLocaleDateString("ja", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </Release>
-        ) : null}
-        {voteAverage ? <Votes isDark={isDark} votes={voteAverage} /> : null}
-        <Overview isDark={isDark}>
-          {overview !== "" && overview.length > 80
-            ? `${overview.slice(0, 80)}...`
-            : overview}
-        </Overview>
-      </HColumn>
-    </HMovie>
+    <TouchableOpacity onPress={goToDetail}>
+      <HMovie>
+        <Poster path={posterPath} />
+        <HColumn>
+          <Title isDark={isDark}>
+            {originalTitle.length > 30
+              ? `${originalTitle.slice(0, 30)}...`
+              : originalTitle}
+          </Title>
+          {releaseDate ? (
+            <Release isDark={isDark}>
+              公開日：
+              {new Date(releaseDate).toLocaleDateString("ja", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Release>
+          ) : null}
+          {voteAverage ? <Votes isDark={isDark} votes={voteAverage} /> : null}
+          <Overview isDark={isDark}>
+            {overview !== "" && overview.length > 80
+              ? `${overview.slice(0, 80)}...`
+              : overview}
+          </Overview>
+        </HColumn>
+      </HMovie>
+    </TouchableOpacity>
   );
 };
 
