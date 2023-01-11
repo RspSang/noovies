@@ -1,6 +1,13 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useEffect } from "react";
-import { Dimensions, StyleSheet, Linking } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Linking,
+  TouchableOpacity,
+  Share,
+  Platform,
+} from "react-native";
 import { useQuery } from "react-query";
 import styled from "styled-components/native";
 import { Movie, moviesApi, TV, tvApi } from "../api";
@@ -72,6 +79,30 @@ const Detail: React.FC<DetailScreenProps> = ({
     [isMovie ? "movies" : "tv", params.id],
     isMovie ? moviesApi.detail : tvApi.detail
   );
+  const shareMedia = async () => {
+    const isAndroid = Platform.OS === "android";
+    const homepage = isMovie
+      ? `https://www.imdb.com/title/${data.imdb_id}`
+      : data.homepage;
+
+    if (isAndroid) {
+      await Share.share({
+        message: `${params.overview}\nCheck it out: ${homepage}`,
+        title: params.title,
+      });
+    } else {
+      await Share.share({
+        url: homepage,
+        title: params.title,
+      });
+    }
+  };
+  const ShareButton = () => (
+    <TouchableOpacity onPress={shareMedia}>
+      <Ionicons name="share-outline" color="white" size={24} />
+    </TouchableOpacity>
+  );
+
   const openYTLink = async (videoID: string) => {
     const baseUrl = `http://m.youtube.com/watch?v=${videoID}`;
     await Linking.openURL(baseUrl);
@@ -81,6 +112,13 @@ const Detail: React.FC<DetailScreenProps> = ({
       title: "original_title" in params ? "映画" : "テレビ",
     });
   }, []);
+  useEffect(() => {
+    if (data) {
+      setOptions({
+        headerRight: () => <ShareButton />,
+      });
+    }
+  }, [data]);
   return (
     <Container>
       <Header>
