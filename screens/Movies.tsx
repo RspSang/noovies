@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "react-query";
 import { Dimensions, FlatList, useColorScheme } from "react-native";
 import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
@@ -34,8 +34,17 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { isLoading: nowPlayingLoading, data: nowPlayingData } =
     useQuery<MovieResponse>(["movies", "nowPlaying"], moviesApi.nowPlaying);
-  const { isLoading: upcomingLoading, data: upcomingData } =
-    useQuery<MovieResponse>(["movies", "upcoming"], moviesApi.upcoming);
+  const {
+    isLoading: upcomingLoading,
+    data: upcomingData,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery(["movies", "upcoming"], moviesApi.upcoming, {
+    getNextPageParam: (currentPage) => {
+      const nextPage = currentPage.page + 1;
+      return nextPage > currentPage.total_pages ? null : nextPage;
+    },
+  });
   const { isLoading: trendingLoading, data: trendingData } =
     useQuery<MovieResponse>(["movies", "trending"], moviesApi.trending);
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
@@ -55,10 +64,17 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     await queryClient.refetchQueries(["movies"]);
     setRefreshing(false);
   };
+  const loadMore = () => {
+    if (hasNextPage) {
+      fetchNextPage();
+    }
+  };
   return loading ? (
     <Loader />
   ) : upcomingData ? (
     <FlatList
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
       onRefresh={onRefresh}
       refreshing={refreshing}
       ListHeaderComponent={
@@ -101,7 +117,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       }
       ItemSeparatorComponent={HSeparator}
       keyExtractor={movieKeyExtractor}
-      data={upcomingData.results}
+      data={upcomingData.pages.map((page) => page.results).flat()}
       renderItem={renderHMedia}
     />
   ) : null;
