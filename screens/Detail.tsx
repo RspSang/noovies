@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useQuery } from "react-query";
 import styled from "styled-components/native";
-import { Movie, moviesApi, TV, tvApi } from "../api";
+import { Movie, MovieDetails, moviesApi, TV, tvApi, TVDetails } from "../api";
 import Loader from "../components/Loader";
 import Poster from "../components/Poster";
 import { makeImgPath } from "../utils";
@@ -68,33 +68,41 @@ type RootStackParamList = {
   Detail: Movie | TV;
 };
 
-type DetailScreenProps = NativeStackScreenProps<RootStackParamList, "Detail">;
+type DetailScreenProps = NativeStackScreenProps<RootStackParamList, "Detail">
 
 const Detail: React.FC<DetailScreenProps> = ({
   navigation: { setOptions },
   route: { params },
 }) => {
   const isMovie = "original_title" in params;
-  const { isLoading, data } = useQuery(
+  const { isLoading, data } = useQuery<MovieDetails | TVDetails>(
     [isMovie ? "movies" : "tv", params.id],
     isMovie ? moviesApi.detail : tvApi.detail
   );
   const shareMedia = async () => {
-    const isAndroid = Platform.OS === "android";
-    const homepage = isMovie
-      ? `https://www.imdb.com/title/${data.imdb_id}`
-      : data.homepage;
-
-    if (isAndroid) {
-      await Share.share({
-        message: `${params.overview}\nCheck it out: ${homepage}`,
-        title: params.title,
-      });
-    } else {
-      await Share.share({
-        url: homepage,
-        title: params.title,
-      });
+    if (data) {
+      const isAndroid = Platform.OS === "android";
+      const homepage =
+        isMovie && "imdb_id" in data
+          ? `https://www.imdb.com/title/${data.imdb_id}/`
+          : data.homepage;
+      if (isAndroid) {
+        await Share.share({
+          message: `${params.overview}\nCheck it out: ${homepage}`,
+          title:
+            "original_title" in params
+              ? params.original_title
+              : params.original_name,
+        });
+      } else {
+        await Share.share({
+          url: homepage,
+          title:
+            "original_title" in params
+              ? params.original_title
+              : params.original_name,
+        });
+      }
     }
   };
   const ShareButton = () => (

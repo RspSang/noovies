@@ -36,9 +36,19 @@ const Tv = () => {
       }
       contentContainerStyle={{ paddingVertical: 30 }}
     >
-      <HList isDark={isDark} title="Trending Tv" data={trendingData.results} />
-      <HList isDark={isDark} title="Airing Today" data={todayData.results} />
-      <HList isDark={isDark} title="Top Rated Tv" data={topData.results} />
+      {trendingData ? (
+        <HList
+          isDark={isDark}
+          title="Trending TV"
+          data={trendingData.results}
+        />
+      ) : null}
+      {todayData ? (
+        <HList isDark={isDark} title="Airing Today" data={todayData.results} />
+      ) : null}
+      {topData ? (
+        <HList isDark={isDark} title="Top Rated TV" data={topData.results} />
+      ) : null}
     </ScrollView>
   );
 };
